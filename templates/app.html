@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>pingb.in</title>
+    <noscript><meta http-equiv="refresh" content="5"></noscript>
+    <style type="text/css">
+      html, body {
+        background-color: #002010;
+        color: #00c020;
+        font-size: 16pt;
+        padding: 10px;
+
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .selectable {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        -o-user-select: text;
+        user-select: text;
+      }
+
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+      }
+
+      .packets {
+        font-size: 12pt;
+      }
+
+      .waiting {
+        font-size: 12pt;
+      }
+
+      .command {
+        margin: 0;
+      }
+
+      .packets td {
+        padding: 2px 12px 0 0;
+        border: 0;
+      }
+
+      .packets .header {
+        /* text-align: center; */
+      }
+
+      .js-hide {
+        visibility: hidden;
+      }
+    </style>
+    <noscript>
+      <style type="text/css">
+        .js-hide {
+          visibility: visible;
+        }
+      </style>
+    </noscript>
+    <script src="//cdn.socket.io/socket.io-1.1.0.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.3/moment.min.js"></script>
+    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript">
+        var token = "{{ token }}";
+        var packets = [];
+        var dirty = false;
+        var safe = true;
+        var first = true;
+        function show() {
+            if (packets.length > 0 && first) {
+                $('.js-hide').removeClass('js-hide');
+                $('.waiting').hide();
+                first = false;
+            }
+        }
+        function makeElement(packet) {
+            var strtime = moment(+moment.utc(packet.time)).format('hh:mm:ss');
+            var rel = '----';
+            if (packet.rel) {
+                rel = packet.rel + 'ms';
+            }
+            var userAgent = '';
+            if (packet.headers && packet.headers['User-Agent']) {
+                userAgent = packet.headers['User-Agent'][0];
+            }
+            return $('<tr class="packet selectable">' +
+                     '<td>' + packet.type + '</td>' +
+                     '<td>' + strtime + '</td>' +
+                     '<td>' + rel + '</td>' +
+                     '<td>' + packet.ip + '</td>' +
+                     '<td>' + (packet.domain ? packet.domain : '') + '</td>' +
+                     '<td>' + userAgent + '</td>' +
+                     '</tr>');
+        }
+        function redraw() {
+            if (! safe) {
+                dirty = true;
+                return;
+            }
+            dirty = false;
+            safe = false;
+
+            var table = $('.packets > tbody');
+            table.html();
+            var last = {};
+            for (var i = packets.length - 1; i >= 0; i--) {
+                var packet = packets[i];
+                var type = packet.type;
+                var ip = packet.ip;
+                if (! last[type]) last[type] = {}
+                if (! packet.rel && last[type][ip]) {
+                    packet.rel = Math.round((packet.time - last[type][ip]), 0);
+                }
+                last[type][ip] = packet.time;
+            }
+            for (var i = 0; i < packets.length; i++) {
+                var el = makeElement(packets[i]);
+                table.append(el);
+            }
+            if (first) show();
+        }
+        setInterval(function() {
+            safe = true;
+            if (dirty) redraw();
+        }, 1000);
+        $(document).ready(function() {
+            $.ajax('/' + token + '/packets', {complete: function(xhr, status) {
+                if (status == 'success') {
+                    var new_packets = JSON.parse(xhr.responseText);
+                    for (var i = 0; i < new_packets.length; i++) {
+                        packets.push(new_packets[i]);
+                    }
+                    redraw();
+                }
+            }});
+            var socket = io('http://pingb.in');
+            socket.on('connect', function() {
+                socket.emit('subscribe', token);
+                $(window).unload(function() {
+                    socket.disconnect();
+                });
+            });
+            socket.on('connect_error', function() {
+                console.log('error connecting');
+            });
+            socket.on(token, function(data) {
+                var packet = JSON.parse(data);
+                packet.time *= 1000;
+                var last;
+                for (var i = 0; i < packets.length; i++) {
+                    if (packets[i].type == packet.type && packets[i].ip == packet.ip) {
+                        packet.rel = Math.round((packet.time - packets[i].time), 0);
+                        break;
+                    }
+                }
+                packets.unshift(packet);
+                var table = $('.packets > tbody');
+                while (packets.length > 1000) {
+                    packets.pop();
+                    var last = table[0].lastChild;
+                    last.parentNode.removeChild(last);
+                }
+                var el = makeElement(packet);
+                table.prepend(el);
+                if (first) show();
+            });
+        });
+    </script>
+  </head>
+  <body>
+{% if token != 'public' %}
+    <pre class="command no-select">$ <span class="selectable">ping -c1{% if token != 'public' %} -p {{ token }}{% endif %} pingb.in</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">$ <span class="selectable">curl pingb.in/p/{{ token }}</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">$ <span class="selectable">dig {{ token }} @pingb.in</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">C:\&gt; <span class="selectable">nslookup {{ token }} pingb.in</span>
+<span class="selectable"> </span></pre>
+{% endif %}
+    {% if not packets %}
+    <div class="waiting">Waiting for ping...</div>
+    {% endif %}
+    <table class="packets js-hide">
+      <tbody>
+        <noscript>
+        {%- for packet in packets %}
+        <tr class="packet selectable">
+          <td>{{ packet.type }}</td>
+          <td>{{ packet.datetime.strftime('%H:%M:%S') }}</td>
+          {% if packet.rel %}<td>{{ packet.rel }}ms</td>{% else %}<td>----</td>{% endif %}
+          <td>{{ packet.ip }}</td>
+          <td>{{ packet.domain }}</td>
+        </tr>
+        {%- endfor %}
+        </noscript>
+      </tbody>
+    </table>
+  </body>
+</html>
