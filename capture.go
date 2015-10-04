@@ -59,7 +59,7 @@ func Capture(device string) (<-chan Record, error) {
 						if !tokenRe.MatchString(domain) {
 							token = ""
 						}
-						header := NewRecordHeader(ip.SrcIP.String(), token, "icmp", packet.Data())
+						header := NewRecordHeader(ip.SrcIP.String(), token, "dns", packet.Data())
 						ret <- &DnsRecord{header, domain}
 					}
 				case *layers.ICMPv4:

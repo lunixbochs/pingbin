@@ -1,24 +1,76 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
 	"github.com/googollee/go-socket.io"
 	"log"
 	"net/http"
 	"regexp"
+	"text/template"
 )
 
-var pathPingRe *regexp.Regexp = regexp.MustCompile(`^/p/([a-f0-9]{32})$`)
+func generateToken() string {
+	var token [14]byte
+	rand.Read(token[:])
+	return hex.EncodeToString(token[:])
+}
+
+var historyPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})/history$`)
+var tokenPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})$`)
+var pathPingRe = regexp.MustCompile(`^/p/(public|[a-fA-F0-9]{28})$`)
 
 func Http() (<-chan Record, error) {
 	ret := make(chan Record)
-	server, err := socketio.NewServer(nil)
+	sockio, err := socketio.NewServer(nil)
 	if err != nil {
 		return nil, err
 	}
-	server.On("connection", func(so socketio.Socket) {
+	sockio.On("connection", func(so socketio.Socket) {
 		so.On("subscribe", func(channel string) {
 			go subscribe(so, channel)
 		})
+	})
+	http.Handle("/socket.io/", sockio)
+	appHtml, err := template.ParseFiles("templates/app.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
+		path := r.URL.Path
+		if path == "/favicon.ico" {
+			return
+		}
+		matches := historyPathRe.FindStringSubmatch(path)
+		if len(matches) > 1 {
+			token := matches[1]
+			history := History(token)
+			if history == nil {
+				history = []Record{}
+			}
+			j, err := json.Marshal(history)
+			if err != nil {
+				log.Println(err)
+			} else {
+				w.Write(j)
+			}
+			return
+		}
+		if !tokenPathRe.MatchString(path) {
+			token := generateToken()
+			http.Redirect(w, r, "/"+token, 302)
+		} else {
+			token := path[1:]
+			err = appHtml.Execute(w, &struct {
+				Token   string
+				History []Record
+			}{token, History(token)})
+			if err != nil {
+				log.Println(err)
+			}
+		}
 	})
 	http.HandleFunc("/p/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path

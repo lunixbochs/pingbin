@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"sync"
 )
 
@@ -35,7 +35,7 @@ func Autopub(c <-chan Record) {
 }
 
 func Publish(name string, r Record) {
-	fmt.Printf("pub %s: %#v\n", name, r)
+	log.Printf("%s\n", r)
 	topicLock.Lock()
 	defer topicLock.Unlock()
 	topic := getTopic(name)
@@ -61,7 +61,11 @@ func Unsubscribe(name string, remove chan Record) {
 	topicLock.Lock()
 	defer topicLock.Unlock()
 	topic := getTopic(name)
-	newSubs := make([]chan Record, 0, len(topic.Subscribers)-1)
+	min := len(topic.Subscribers) - 1
+	if min < 0 {
+		min = 0
+	}
+	newSubs := make([]chan Record, 0, min)
 	for _, c := range topic.Subscribers {
 		if c != remove {
 			newSubs = append(newSubs, c)
