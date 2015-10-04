@@ -77,5 +77,10 @@ func Unsubscribe(name string, remove chan Record) {
 func History(name string) []Record {
 	topicLock.Lock()
 	defer topicLock.Unlock()
-	return getTopic(name).History
+	topic := getTopic(name)
+	tmp := make([]Record, len(topic.History))
+	for i := 0; i < len(tmp); i++ {
+		tmp[i] = topic.History[len(tmp)-i-1]
+	}
+	return tmp
 }
