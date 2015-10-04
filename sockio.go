@@ -16,7 +16,7 @@ func subscribe(so socketio.Socket, topic string) {
 		if err != nil {
 			log.Println(err)
 		} else {
-			so.Emit(topic, v)
+			so.Emit(topic, string(v))
 		}
 	}
 }
