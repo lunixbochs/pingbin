@@ -32,7 +32,7 @@ func findToken(p []byte) string {
 	return ""
 }
 
-var tokenRe = regexp.MustCompile(`^[a-zA-Z0-9]{28}$`)
+var tokenRe = regexp.MustCompile(`^([a-zA-Z0-9]{28})\.?`)
 
 func Capture(device string) (<-chan Record, error) {
 	capture, err := newCapture(os.Args[1])
@@ -55,8 +55,10 @@ func Capture(device string) (<-chan Record, error) {
 					}
 					for _, q := range layer.Questions {
 						domain := string(q.Name)
-						token := domain
-						if !tokenRe.MatchString(domain) {
+						var token string
+						if match := tokenRe.FindStringSubmatch(domain); len(match) >= 2 {
+							token = match[1]
+						} else {
 							token = ""
 						}
 						header := NewRecordHeader(ip.SrcIP.String(), token, "dns", packet.Data())
