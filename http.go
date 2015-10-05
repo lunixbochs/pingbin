@@ -7,6 +7,7 @@ import (
 	"github.com/googollee/go-socket.io"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"text/template"
 )
@@ -18,7 +19,7 @@ func generateToken() string {
 }
 
 var historyPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})/history$`)
-var tokenPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})$`)
+var tokenPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})(/nojs)?$`)
 var pathPingRe = regexp.MustCompile(`^/p/(public|[a-fA-F0-9]{28})$`)
 
 func Http() (<-chan Record, error) {
@@ -33,10 +34,19 @@ func Http() (<-chan Record, error) {
 		})
 	})
 	http.Handle("/socket.io/", sockio)
-	appHtml, err := template.ParseFiles("templates/app.html")
+	indexHtml, err := template.ParseFiles("frontend/index.html")
 	if err != nil {
 		log.Fatal(err)
 	}
+	nojsHtml, err := template.ParseFiles("frontend/index-nojs.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	compiled := true
+	if _, err := os.Stat("frontend/main.full.js"); os.IsNotExist(err) {
+		compiled = false
+	}
+	fileServer := http.FileServer(http.Dir("frontend"))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
 		path := r.URL.Path
@@ -58,15 +68,22 @@ func Http() (<-chan Record, error) {
 			}
 			return
 		}
-		if !tokenPathRe.MatchString(path) {
+		if path == "/" {
 			token := generateToken()
 			http.Redirect(w, r, "/"+token, 302)
+		} else if match := tokenPathRe.FindStringSubmatch(path); len(match) < 2 {
+			fileServer.ServeHTTP(w, r)
 		} else {
-			token := path[1:]
-			err = appHtml.Execute(w, &struct {
-				Token   string
-				History []Record
-			}{token, History(token)})
+			token := match[1]
+			template := indexHtml
+			if len(match) >= 3 && match[2] == "/nojs" {
+				template = nojsHtml
+			}
+			err = template.Execute(w, &struct {
+				Compiled bool
+				Token    string
+				History  []Record
+			}{compiled, token, History(token)})
 			if err != nil {
 				log.Println(err)
 			}

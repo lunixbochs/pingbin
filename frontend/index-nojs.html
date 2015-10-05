@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>pingb.in</title>
+    <meta http-equiv="refresh" content="5">
+    <style type="text/css">
+      html, body {
+        background-color: #002010;
+        color: #00c020;
+        font-size: 16pt;
+        padding: 10px;
+
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .selectable {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        -o-user-select: text;
+        user-select: text;
+      }
+
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+      }
+
+      .packets {
+        font-size: 12pt;
+      }
+
+      .waiting {
+        font-size: 12pt;
+      }
+
+      .command {
+        margin: 0;
+      }
+
+      .packets td {
+        padding: 2px 12px 0 0;
+        border: 0;
+      }
+
+      .packets .header {
+        /* text-align: center; */
+      }
+    </style>
+  </head>
+  <body>
+{{ if (ne .Token "public") }}
+    <pre class="command no-select">$ <span class="selectable">ping -c1 -p 00{{ .Token }}00 pingb.in</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">$ <span class="selectable">curl pingb.in/p/{{ .Token }}</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select"><span class="selectable">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;
+    &lt;!DOCTYPE foo [&lt;!ELEMENT foo ANY&gt;
+    &lt;!ENTITY xxe SYSTEM &quot;http://pingb.in/p/{{ .Token }}&quot;&gt;]&gt;
+    &lt;foo&gt;&amp;xxe;&lt;/foo&gt;</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">$ <span class="selectable">dig {{ .Token }} @pingb.in</span>
+<span class="selectable"> </span></pre>
+</pre>
+    <pre class="command no-select">C:\&gt; <span class="selectable">nslookup {{ .Token }} pingb.in</span>
+<span class="selectable"> </span></pre>
+{{ end }}
+    {{ if (eq (len .History) 0) }}
+    <div class="waiting">Waiting for ping...</div>
+    {{ end }}
+    <table class="packets">
+      <tbody>
+        {{ range $packet := .History }}
+        <tr class="packet selectable">
+          <td>{{ $packet.Header.Type }}</td>
+          <td>{{ $packet.Header.Time.Format "15:04:05" }}</td>
+          <td>{{ $packet.Header.IP }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </body>
+</html>

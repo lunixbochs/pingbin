@@ -1,0 +1,281 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.vbox {
+    display: flex;
+    flex-direction: row;
+}
+
+.hbox {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.column {
+    overflow: auto;
+}
+
+.column-narrow {
+    width: 200px;
+    box-sizing: border-box;
+    border-right: 1px solid #bbb;
+}
+
+.column-flex {
+    display: flex;
+    flex: 1;
+    box-sizing: border-box;
+    border-right: 1px solid #bbb;
+}
+
+.monospace {
+    font-family: Monaco, Consolas, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
+.top-bar {
+    height: 32px;
+    font-size: 16px;
+    border-bottom: 1px solid #bbb;
+}
+
+.top-bar, .top-bar .search, .top-bar button {
+    background: #333;
+    color: #ddd;
+    font-weight: bold;
+}
+
+.top-bar > * {
+    display: inline;
+}
+
+.top-bar .search {
+    border: none;
+    box-sizing: border-box;
+    color: #ffffff;
+    font-size: 16px;
+    height: 100%;
+    margin: 0;
+    outline: none !important;
+    padding: 5px;
+    width: 200px;
+}
+::-webkit-input-placeholder {
+   text-align: center;
+}
+/* Firefox 18- */
+:-moz-placeholder {
+   text-align: center;
+}
+/* Firefox 19+ */
+::-moz-placeholder {
+   text-align: center;
+}
+:-ms-input-placeholder {
+   text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.top-bar .submit:hover {
+    border-color: red;
+}
+
+.top-bar .submit:active {
+    padding-top: 0;
+    border: none;
+}
+
+.top-bar button:hover {
+    color: #ffffff;
+    padding-top: 4px;
+    border-bottom: 4px solid #ffffff;
+}
+
+.top-bar button:active {
+    padding-top: 4px;
+    border-bottom: 4px solid #ffffff;
+}
+
+.top-bar .settings:active {
+    color: #ffffff;
+    border-top-color: #ffffff;
+    border-bottom-color: #ffffff;
+}
+
+.top-bar .settings:hover {
+    padding-top: 0;
+    border-top: 4px solid yellow;
+    border-bottom: 4px solid yellow;
+}
+
+.top-bar button {
+    border: none;
+    cursor: pointer;
+    height: 100%;
+    outline: none !important;
+    padding: 0 10px 0 10px;
+    vertical-align: top;
+    font-size: 16px;
+}
+
+.top-bar span {
+    display: inline-block;
+}
+
+.top-bar .top-right {
+    float: right;
+    height: 100%;
+}
+
+.list-toggle-bar {
+    display: flex;
+    flex-direction: rows;
+}
+
+.list-toggle {
+    display: flex;
+    flex: 1;
+    padding: 5px;
+    padding-left: 15px;
+    font-size: 14px;
+    outline: none !important;
+}
+
+.list .push {
+    min-width: 1px;
+    padding: 0;
+    margin: 0;
+}
+
+.list:focus {
+    outline: none !important;
+}
+
+.list:focus .list-item-selected {
+    background-color: #376bb4 !important;
+}
+
+.list:focus .list-item-selected > div {
+    text-decoration: none;
+}
+
+.list-item-selected {
+    background-color: #757575 !important;
+    cursor: default !important;
+}
+
+.list-item-selected .uri {
+    color: #ffffff !important;
+}
+
+.list-item-selected .host {
+    color: #ddd !important;
+}
+
+.list-item:nth-child(odd) {
+    background-color: #efefef;
+}
+
+.list-item {
+    height: 41px;
+    box-sizing: border-box;
+    padding: 3px 0 3px 8px;
+}
+
+.list-item {
+    cursor: pointer;
+}
+
+.list-item:hover .uri {
+    text-decoration: underline;
+}
+
+.list-item .uri {
+    color: #444;
+    font-weight: bold;
+}
+
+.list-item .host {
+    color: #666;
+}
+
+.intercept-item {
+    border-left: 2px solid orange;
+    background-color: #ffe4d3 !important;
+}
+
+.status-404 {
+    border-right: 8px solid #dfe15f;
+}
+
+.status-500 {
+    border-right: 8px solid #b70f0f;
+}
+
+.status-200 {
+    border-right: 8px solid #b0d1ad;
+}
+
+.console {
+    height: 100px;
+    padding: 10px;
+    border-top: 1px solid #bbb;
+    overflow: auto;
+}
+
+.console textarea {
+    display: flex;
+    border: none;
+    font-size: 12px;
+    outline: none !important;
+    resize: none;
+    overflow: hidden;
+}
+
+.console .prompt {
+    cursor: default;
+    width: 1em;
+}
+
+.console .input {
+    display: flex;
+    flex: 1;
+}
+
+pre {
+    padding: 5px;
+    vertical-align: top;
+    border: none;
+    box-sizing: border-box;
+
+    margin: 0;
+    padding: 5px;
+    width: 100%;
+    font-size: 12px;
+}
+
+.console > pre {
+    height: 200px;
+}
+
+.row {
+    flex: 1;
+}
+
+.row-short {
+    height: 200px;
+}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="style.css">
+    {{ if (eq .Compiled true) }}
+    <script type="text/javascript" src="main.full.js"></script>
+    {{ else }}
+    <script type="text/javascript" data-main="main.js" src="components/requirejs/require.js"></script>
+    {{ end }}
+  </head>
+  <body>
+      <div id="root">
+          <noscript>
+              <meta http-equiv="refresh" content="0;URL=/{{ .Token }}/nojs" />
+              This page requires JavaScript. Redirecting to JavaScript-free version.
+          </noscript>
+      </div>
+  </body>
+</html>
