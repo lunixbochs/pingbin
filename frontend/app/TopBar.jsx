@@ -5,10 +5,7 @@ define(['react', 'morearty'], function(React, Morearty) {
         render: function() {
             return (
                 <div className="top-bar" ref="topbar">
-                    <p>curl</p>
-                    <p>ping</p>
-                    <p>nslookup</p>
-                    <p>dig</p>
+                    <button>pingb.in</button>
                 </div>
             );
         },

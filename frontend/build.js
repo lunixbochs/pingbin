@@ -14,6 +14,6 @@
     preserveLicenseComments: false,
 
     onBuildWrite: function (moduleName, path, singleContents) {
-    return singleContents.replace(/jsx!/g, '');
+        return singleContents.replace(/jsx!/g, '');
     }
 })

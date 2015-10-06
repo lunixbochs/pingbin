@@ -7,7 +7,8 @@ require.config({
         "morearty": "components/moreartyjs/dist/morearty",
         "react": "components/react/react-with-addons",
         "socket.io": "components/socket.io-client/socket.io",
-        "text" : "components/requirejs-text/text",
+        "text": "components/requirejs-text/text",
+        "moment": "components/moment/moment",
     },
 
     shim : {

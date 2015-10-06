@@ -10,6 +10,7 @@ html, body {
     left: 0;
     bottom: 0;
     right: 0;
+    font-family: Arial, serif;
 }
 
 .vbox {
@@ -178,12 +179,16 @@ html, body {
     cursor: default !important;
 }
 
-.list-item-selected .uri {
+.list-item-selected .title {
     color: #ffffff !important;
 }
 
-.list-item-selected .host {
-    color: #ddd !important;
+.list-item-selected .subtitle {
+    color: #ffffff !important;
+}
+
+.list-item-selected .right {
+    color: #ffffff !important;
 }
 
 .list-item:nth-child(odd) {
@@ -200,17 +205,26 @@ html, body {
     cursor: pointer;
 }
 
-.list-item:hover .uri {
+.list-item:hover .title {
     text-decoration: underline;
 }
 
-.list-item .uri {
+.list-item .title {
     color: #444;
     font-weight: bold;
 }
 
-.list-item .host {
+.list-item .subtitle {
     color: #666;
+}
+
+.list-item .right {
+    float: right;
+    height: 41px;
+    line-height: 41px;
+    font-size: 18px;
+    padding: 0 6px 0 0;
+    margin: 0;
 }
 
 .intercept-item {

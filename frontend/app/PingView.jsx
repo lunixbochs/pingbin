@@ -21,7 +21,6 @@ define(['react', 'morearty', 'jquery'], function(React, Morearty, $) {
             var text = request.get(this.props.view);
             return (
                 <div className="column column-flex">
-                    <p>Ping View</p>
                 </div>
             );
         },

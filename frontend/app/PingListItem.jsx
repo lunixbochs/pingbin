@@ -1,4 +1,4 @@
-define(['react', 'morearty'], function(React, Morearty) {
+define(['react', 'morearty', 'moment'], function(React, Morearty, moment) {
     var PingListItem;
     PingListItem = React.createClass({
         displayName: 'PingListItem',
@@ -24,11 +24,12 @@ define(['react', 'morearty'], function(React, Morearty) {
                     <PingListItem binding={binding.sub('children').sub(0)} />
                 ];
             }
-            var title = binding.get('method') + ' ' + binding.get('uri');
+            var time = moment(+moment.utc(binding.get('time'))).format('h:mm:ss')
             return (
                 <div className={classes} onClick={this.props.onClick}>
-                    <div className="uri">{title}</div>
-                    <div className="host">{binding.get('host')}</div>
+                    <div className="right">{binding.get('ip')}</div>
+                    <div className="title">{time}</div>
+                    <div className="subtitle">{binding.get('type')}</div>
                     {children}
                 </div>
             );
