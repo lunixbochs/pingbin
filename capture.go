@@ -3,17 +3,34 @@ package main
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"os"
+	"net"
 	"regexp"
+	"strings"
 )
 
 func newCapture(device string) (*gopacket.PacketSource, error) {
+	addrFilter := ""
+	ifv, err := net.InterfaceByName(device)
+	if err != nil {
+		return nil, err
+	}
+	addrs, err := ifv.Addrs()
+	if err != nil {
+		return nil, err
+	}
+	for _, addr := range addrs {
+		split := strings.SplitN(addr.String(), "/", 2)
+		addrFilter += " and not src host " + split[0]
+	}
+	filter := fmt.Sprintf("(icmp or icmp6 or port 53) %s", addrFilter)
+
 	if handle, err := pcap.OpenLive(device, 1600, true, pcap.BlockForever); err != nil {
 		return nil, err
-	} else if err := handle.SetBPFFilter("icmp or icmp6 or port 53"); err != nil {
+	} else if err := handle.SetBPFFilter(filter); err != nil {
 		return nil, err
 	} else if err := handle.SetDirection(pcap.DirectionIn); err != nil {
 		return nil, err
@@ -35,7 +52,7 @@ func findToken(p []byte) string {
 var tokenRe = regexp.MustCompile(`^([a-zA-Z0-9]{28})\.?`)
 
 func Capture(device string) (<-chan Record, error) {
-	capture, err := newCapture(os.Args[1])
+	capture, err := newCapture(device)
 	if err != nil {
 		return nil, err
 	}
