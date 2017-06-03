@@ -17,9 +17,9 @@ func generateToken() string {
 	return hex.EncodeToString(token[:])
 }
 
-var historyPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})/history$`)
-var tokenPathRe = regexp.MustCompile(`^/(public|[a-fA-F0-9]{28})$`)
-var pathPingRe = regexp.MustCompile(`^/p/(public|[a-fA-F0-9]{28})$`)
+var historyPathRe = regexp.MustCompile(`^/[a-fA-F0-9]{28}/history$`)
+var tokenPathRe = regexp.MustCompile(`^/[a-fA-F0-9]{28}$`)
+var pathPingRe = regexp.MustCompile(`^/p/[a-fA-F0-9]{28}$`)
 
 func Http() (<-chan Record, error) {
 	ret := make(chan Record)
@@ -76,11 +76,10 @@ func Http() (<-chan Record, error) {
 		path := r.URL.Path
 		matches := pathPingRe.FindStringSubmatch(path)
 		var token string
-		if len(matches) > 1 {
-			token = matches[1]
-		} else {
-			token = "public"
+		if len(matches) < 2 {
+			return
 		}
+		token = matches[1]
 		ip := r.RemoteAddr
 		if v, ok := r.Header["X-Forwarded-For"]; ok && len(v) > 0 {
 			ip = v[0]
