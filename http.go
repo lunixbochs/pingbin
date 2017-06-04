@@ -21,7 +21,7 @@ var historyPathRe = regexp.MustCompile(`^/[a-fA-F0-9]{28}/history$`)
 var tokenPathRe = regexp.MustCompile(`^/[a-fA-F0-9]{28}$`)
 var pathPingRe = regexp.MustCompile(`^/p/[a-fA-F0-9]{28}$`)
 
-func Http() (<-chan Record, error) {
+func Http(listen string) (<-chan Record, error) {
 	ret := make(chan Record)
 	sockio, err := socketio.NewServer(nil)
 	if err != nil {
@@ -100,7 +100,7 @@ func Http() (<-chan Record, error) {
 		}
 	})
 	go func() {
-		err := http.ListenAndServe(":5007", nil)
+		err := http.ListenAndServe(listen, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
