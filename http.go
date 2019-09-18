@@ -27,10 +27,21 @@ func Http(listen string) (<-chan Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	sockio.On("connection", func(so socketio.Socket) {
-		so.On("subscribe", func(channel string) {
-			go subscribe(so, channel)
+	sockio.OnEvent("/", "subscribe", func(s socketio.Conn, topic string) {
+		events := Subscribe(topic)
+		sockio.OnDisconnect("/", func(s socketio.Conn, msg string) {
+			Unsubscribe(topic, events)
 		})
+		go func() {
+			for e := range events {
+				v, err := json.Marshal(e)
+				if err != nil {
+					log.Println(err)
+				} else {
+					s.Emit(topic, string(v))
+				}
+			}
+		}()
 	})
 	http.Handle("/socket.io/", sockio)
 	appHtml, err := template.ParseFiles("templates/app.html")
