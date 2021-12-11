@@ -19,7 +19,7 @@ func generateToken() string {
 
 var historyPathRe = regexp.MustCompile(`^/([a-fA-F0-9]{28})/history$`)
 var tokenPathRe = regexp.MustCompile(`^/([a-fA-F0-9]{28})$`)
-var pathPingRe = regexp.MustCompile(`^/p/([a-fA-F0-9]{28})$`)
+var pathPingRe = regexp.MustCompile(`^/p/([a-fA-F0-9]{28})(/|$)`)
 
 func Http(listen string) (<-chan Record, error) {
 	ret := make(chan Record)

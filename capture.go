@@ -49,7 +49,7 @@ func findToken(p []byte) string {
 	return ""
 }
 
-var tokenRe = regexp.MustCompile(`^([a-zA-Z0-9]{28})\.?`)
+var tokenRe = regexp.MustCompile(`\.?([a-zA-Z0-9]{28})\.?`)
 
 func Capture(device string) (<-chan Record, error) {
 	capture, err := newCapture(device)
