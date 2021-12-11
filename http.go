@@ -23,10 +23,7 @@ var pathPingRe = regexp.MustCompile(`^/p/([a-fA-F0-9]{28})$`)
 
 func Http(listen string) (<-chan Record, error) {
 	ret := make(chan Record)
-	sockio, err := socketio.NewServer(nil)
-	if err != nil {
-		return nil, err
-	}
+	sockio := socketio.NewServer(nil)
 	sockio.OnEvent("/", "subscribe", func(s socketio.Conn, topic string) {
 		events := Subscribe(topic)
 		sockio.OnDisconnect("/", func(s socketio.Conn, msg string) {
@@ -111,6 +108,8 @@ func Http(listen string) (<-chan Record, error) {
 		}
 	})
 	go func() {
+		go sockio.Serve()
+		defer sockio.Close()
 		err := http.ListenAndServe(listen, nil)
 		if err != nil {
 			log.Fatal(err)
