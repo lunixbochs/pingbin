@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/googollee/go-socket.io"
+	"strings"
+	"strconv"
 	"log"
 	"net/http"
 	"regexp"
@@ -21,7 +23,7 @@ var historyPathRe = regexp.MustCompile(`^/([a-fA-F0-9]{28})/history$`)
 var tokenPathRe = regexp.MustCompile(`^/([a-fA-F0-9]{28})$`)
 var pathPingRe = regexp.MustCompile(`^/p/([a-fA-F0-9]{28})(/|$)`)
 
-func Http(listen string) (<-chan Record, error) {
+func Http(listen string, httpHost string) (<-chan Record, error) {
 	ret := make(chan Record)
 	sockio := socketio.NewServer(nil)
 	sockio.OnEvent("/", "subscribe", func(s socketio.Conn, topic string) {
@@ -45,6 +47,30 @@ func Http(listen string) (<-chan Record, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	addrPortList := strings.Split(listen, ":")
+	var addr string
+	var port int
+	if len(addrPortList) == 1 {
+		addr = listen
+		port = 80
+	} else if len(addrPortList) == 2 {
+		addr = addrPortList[0]
+		port, err = strconv.Atoi(addrPortList[1])
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		panic("The listen address \"" + listen + "\" needs to be HOST:PORT")
+	}
+	listenAddrPort := addr + ":" + strconv.Itoa(port)
+	var httpHostPort string
+	if port == 80 {
+		httpHostPort = httpHost
+	} else {
+		httpHostPort = httpHost + ":" + strconv.Itoa(port)
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
 		path := r.URL.Path
@@ -72,9 +98,11 @@ func Http(listen string) (<-chan Record, error) {
 		} else {
 			token := path[1:]
 			err = appHtml.Execute(w, &struct {
-				Token   string
+				HttpHost		string
+				HttpHostPort	string
+				Token	string
 				History []Record
-			}{token, History(token)})
+			}{httpHost, httpHostPort, token, History(token)})
 			if err != nil {
 				log.Println(err)
 			}
@@ -99,9 +127,9 @@ func Http(listen string) (<-chan Record, error) {
 		header := NewRecordHeader(ip, token, "http", nil)
 		ret <- &HttpRecord{
 			RecordHeader: header,
-			Domain:       host,
-			Path:         path,
-			Headers:      r.Header,
+			Domain:		  host,
+			Path:		  path,
+			Headers:	  r.Header,
 		}
 		if err != nil {
 			log.Println(err)
@@ -110,7 +138,7 @@ func Http(listen string) (<-chan Record, error) {
 	go func() {
 		go sockio.Serve()
 		defer sockio.Close()
-		err := http.ListenAndServe(listen, nil)
+		err := http.ListenAndServe(listenAddrPort, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
